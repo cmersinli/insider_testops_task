@@ -20,7 +20,7 @@ class TestInsider:
             jobs = openPositionsPage.getAllJobs()
 
             if len(jobs) == 0:
-                pytest.skip("No QA jobs currently available in Istanbul")
+                pytest.skip("No QA jobs currently available in Istanbul, Türkiye")
 
             for index, job in enumerate(jobs):
                 try:
