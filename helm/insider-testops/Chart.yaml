@@ -1,0 +1,17 @@
+apiVersion: v2
+name: insider-testops
+description: Helm chart for InsiderOne TestOps - Selenium Test Automation with Test Controller and Chrome Node pods
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - selenium
+  - testing
+  - automation
+  - chrome
+  - kubernetes
+maintainers:
+  - name: InsiderOne DevOps
+home: https://github.com/cmersinli/insider_testops_task
+sources:
+  - https://github.com/cmersinli/insider_testops_task/helm/insider-testops

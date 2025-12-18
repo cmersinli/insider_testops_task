@@ -1,0 +1,70 @@
+namespace: insider-testops
+
+nameOverride: ""
+fullnameOverride: ""
+
+awsAccountId: "212984411759"
+awsRegion: eu-west-1
+ecrRepository: insider-repo
+
+imagePullSecrets:
+  - name: ecr-secret
+
+testController:
+  image:
+    repository: 212984411759.dkr.ecr.eu-west-1.amazonaws.com/insider-repo
+    tag: test-case-controller-1.0.0
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  env:
+    - name: PYTHONUNBUFFERED
+      value: "1"
+
+chromeNode:
+  image:
+    repository: 212984411759.dkr.ecr.eu-west-1.amazonaws.com/insider-repo
+    tag: "chrome_node-142.0"
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  env:
+    - name: HEADLESS
+      value: "true"
+    - name: SE_NODE_MAX_SESSIONS
+      value: "1"
+    - name: SE_NODE_SESSION_TIMEOUT
+      value: "300"
+  ports:
+    selenium: 4444
+
+chromeNodeService:
+  headlessName: chrome-node-headless
+  port: 4444
+
+serviceAccount:
+  create: true
+  name: insider-testops-sa
+
+rbac:
+  create: true
+
+networkPolicy:
+  enabled: true

@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.chromeNodeService.headlessName | default "chrome-node-headless" }}
+  namespace: {{ include "insider-testops.namespace" . }}
+  labels:
+    {{- include "insider-testops.chromeNodeLabels" . | nindent 4 }}
+spec:
+  clusterIP: None
+  selector:
+    {{- include "insider-testops.chromeNodeSelectorLabels" . | nindent 4 }}
+  ports:
+    - name: selenium
+      port: {{ .Values.chromeNodeService.port }}
+      targetPort: {{ .Values.chromeNode.ports.selenium }}
+      protocol: TCP

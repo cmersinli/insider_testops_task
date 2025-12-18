@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: chrome-node
+  namespace: {{ include "insider-testops.namespace" . }}
+  labels:
+    {{- include "insider-testops.chromeNodeLabels" . | nindent 4 }}
+spec:
+  serviceName: {{ .Values.chromeNodeService.headlessName | default "chrome-node-headless" }}
+  replicas: {{ .Values.chromeNode.replicaCount }}
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "insider-testops.chromeNodeSelectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "insider-testops.chromeNodeSelectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "insider-testops.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: chrome-node
+          image: {{ include "insider-testops.chromeNodeImage" . }}
+          imagePullPolicy: {{ .Values.chromeNode.image.pullPolicy }}
+          ports:
+            - name: selenium
+              containerPort: {{ .Values.chromeNode.ports.selenium }}
+              protocol: TCP
+          {{- with .Values.chromeNode.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.chromeNode.resources | nindent 12 }}
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: selenium
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /status
+              port: selenium
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            runAsUser: 1200
+            runAsGroup: 1201
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: dshm
+              mountPath: /dev/shm
+      volumes:
+        - name: dshm
+          emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
+      restartPolicy: Always
