@@ -14,4 +14,4 @@ maintainers:
   - name: InsiderOne DevOps
 home: https://github.com/cmersinli/insider_testops_task
 sources:
-  - https://github.com/cmersinli/insider_testops_task/helm/insider-testops
+  - https://github.com/cmersinli/insider_testops_task/tree/main/helm/insider-testops
