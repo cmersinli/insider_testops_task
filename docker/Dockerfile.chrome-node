@@ -1,0 +1,12 @@
+# check=skip=SecretsUsedInArgOrEnv
+FROM selenium/standalone-chrome:142.0-20251202
+
+LABEL maintainer="Çağlar MERSİNLİ" \
+    description="Chrome Node Pod" \
+    version="2.0.0"
+
+ENV SE_NODE_MAX_SESSIONS=1 \
+    SE_SESSION_REQUEST_TIMEOUT=300 \
+    SE_START_VNC=false
+
+EXPOSE 4444
