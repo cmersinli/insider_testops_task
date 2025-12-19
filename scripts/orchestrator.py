@@ -295,10 +295,10 @@ class KubernetesOrchestrator:
                         logger.info(f"  {line}")
 
             if returnCode == 0:
-                logger.info("[deploy] SUCCESS - Helim deployment completed")
+                logger.info("[deploy] SUCCESS - Helm deployment completed")
                 return True
 
-            logger.error(f"[deploy] Helm command failed with return codee: {returnCode}")
+            logger.error(f"[deploy] Helm command failed with return code: {returnCode}")
             if stderr:
                 logger.error(f"[deploy] Stderr: {stderr}")
 
@@ -325,7 +325,7 @@ class KubernetesOrchestrator:
 
             time.sleep(READINESS_CHECK_INTERVAL)
 
-        logger.error(f"[checkReadiness] TIMOUT after {READINESS_TIMEOUT}s")
+        logger.error(f"[checkReadiness] TIMEOUT after {READINESS_TIMEOUT}s")
         return False
 
     def passTestCases(self) -> list[str]:
@@ -341,7 +341,7 @@ class KubernetesOrchestrator:
                     logger.info(f"[passTestCases] Retrying in {RETRY_DELAY}s...")
                     time.sleep(RETRY_DELAY)
                     continue
-                logger.error("[passTestCases] FALED - Controller Pod not found after retries")
+                logger.error("[passTestCases] FAILED - Controller Pod not found after retries")
                 return []
 
             logger.info(f"[passTestCases] Found Test Case Controller Pod: {controllerPodName}")
@@ -396,9 +396,9 @@ class KubernetesOrchestrator:
         logger.info(f"[executeTests] Using Chrome Node: {remoteUrl}")
 
         if specificTests:
-            command = ["python", "-m", "pytest"] + specificTests + ["-v", "--tb=short", "-p", "no:cacheprovider"]
+            command = ["python", "-m", "pytest"] + specificTests + ["-v", "-s", "--tb=short", "-p", "no:cacheprovider"]
         else:
-            command = ["python", "-m", "pytest", testPath, "-v", "--tb=short", "-p", "no:cacheprovider"]
+            command = ["python", "-m", "pytest", testPath, "-v", "-s", "--tb=short", "-p", "no:cacheprovider"]
 
         envVars = {
             "HEADLESS": "true",
@@ -510,6 +510,13 @@ class KubernetesOrchestrator:
         return status
 
     def run(self, helmChartPath: str = None, nodeCount: int = None, skipDeploy: bool = False, valuesFile: str = None) -> bool:
+        """
+        Main orchestration flow:
+        1. deploy - Deploy K8s resources via Helm (optional)
+        2. checkReadiness - Wait for pods to be ready
+        3. passTestCases - Collect tests from Test Case Controller
+        4. executeTests - Run tests in Chrome Node Pod
+        """
         effectiveNodeCount = nodeCount or DEFAULT_NODE_COUNT
 
         logger.info("=" * 60)
@@ -592,7 +599,15 @@ Environment Variables:
   MAX_RETRIES            Maximum retry attempts (default: 3)
   RETRY_DELAY            Delay between retries in seconds (default: 10)
 
+Main Functions (Requirements):
+  deploy           - Deploy K8s resources via Helm based on node_count
+  checkReadiness   - Check if pods are ready before running tests
+  passTestCases    - Pass test cases from Controller to Chrome Node
+  executeTests     - Execute tests via terminal commands in Chrome Node
+  handleErrors     - Error handling and retry mechanism (with callback)
+
 Examples:
+  %(prog)s --deploy -f values-local.yaml --node-count 3
   %(prog)s --deploy --node-count 2
   %(prog)s --status
   %(prog)s --check-readiness
@@ -612,7 +627,7 @@ Examples:
     parser.add_argument(
         "--deploy",
         action="store_true",
-        help="Deploy K8s resources via Helm (PDF 2.1)"
+        help="Deploy K8s resources via Helm "
     )
 
     parser.add_argument(
@@ -651,19 +666,19 @@ Examples:
     parser.add_argument(
         "--check-readiness",
         action="store_true",
-        help="Only check pod readiness (PDF 2.3)"
+        help="Only check pod readiness "
     )
 
     parser.add_argument(
         "--pass-test-cases",
         action="store_true",
-        help="Only collect and pass test cases (PDF 2.2)"
+        help="Only collect and pass test cases"
     )
 
     parser.add_argument(
         "--execute-tests",
         action="store_true",
-        help="Only execute tests in Chrome Node (PDF 2.4)"
+        help="Only execute tests in Chrome Node"
     )
 
     parser.add_argument(

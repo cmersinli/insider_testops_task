@@ -1,48 +1,28 @@
-{{- if .Values.serviceAccount.create }}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ include "insider-testops.serviceAccountName" . }}
-  namespace: {{ include "insider-testops.namespace" . }}
-  labels:
-    {{- include "insider-testops.labels" . | nindent 4 }}
-{{- end }}
+  name: insider-testops-sa
+  namespace: {{ include "namespace" . }}
 ---
-{{- if .Values.rbac.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ include "insider-testops.fullname" . }}-role
-  namespace: {{ include "insider-testops.namespace" . }}
-  labels:
-    {{- include "insider-testops.labels" . | nindent 4 }}
+  name: insider-testops-role
+  namespace: {{ include "namespace" . }}
 rules:
   - apiGroups: [""]
-    resources: ["pods", "pods/log", "pods/exec"]
-    verbs: ["get", "list", "watch", "create", "delete"]
-  - apiGroups: [""]
-    resources: ["services"]
-    verbs: ["get", "list"]
-  - apiGroups: [""]
-    resources: ["configmaps"]
-    verbs: ["get", "list"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "list", "watch"]
+    resources: ["pods", "pods/exec", "pods/log"]
+    verbs: ["get", "list", "create", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ include "insider-testops.fullname" . }}-rolebinding
-  namespace: {{ include "insider-testops.namespace" . }}
-  labels:
-    {{- include "insider-testops.labels" . | nindent 4 }}
+  name: insider-testops-binding
+  namespace: {{ include "namespace" . }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "insider-testops.serviceAccountName" . }}
-    namespace: {{ include "insider-testops.namespace" . }}
+    name: insider-testops-sa
 roleRef:
   kind: Role
-  name: {{ include "insider-testops.fullname" . }}-role
+  name: insider-testops-role
   apiGroup: rbac.authorization.k8s.io
-{{- end }}

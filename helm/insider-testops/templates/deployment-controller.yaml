@@ -2,47 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: test-case-controller
-  namespace: {{ include "insider-testops.namespace" . }}
-  labels:
-    {{- include "insider-testops.controllerLabels" . | nindent 4 }}
+  namespace: {{ include "namespace" . }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "insider-testops.controllerSelectorLabels" . | nindent 6 }}
+      app: test-case-controller
   template:
     metadata:
       labels:
-        {{- include "insider-testops.controllerSelectorLabels" . | nindent 8 }}
+        app: test-case-controller
     spec:
-      serviceAccountName: {{ include "insider-testops.serviceAccountName" . }}
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
-        - name: test-case-controller
-          image: {{ include "insider-testops.controllerImage" . }}
-          imagePullPolicy: {{ .Values.testController.image.pullPolicy }}
+        - name: controller
+          image: {{ .Values.controller.image }}
+          imagePullPolicy: {{ .Values.controller.imagePullPolicy | default "IfNotPresent" }}
           env:
             - name: REMOTE_URL
-              value: "http://{{ .Values.chromeNodeService.name }}:{{ .Values.chromeNodeService.port }}"
-            {{- with .Values.testController.env }}
-            {{- toYaml . | nindent 12 }}
-            {{- end }}
-          resources:
-            {{- toYaml .Values.testController.resources | nindent 12 }}
-          command:
-            - "/bin/sh"
-            - "-c"
-            - "sleep infinity"
-          securityContext:
-            runAsNonRoot: true
-            runAsUser: 1000
-            runAsGroup: 1000
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
-            capabilities:
-              drop:
-                - ALL
-      restartPolicy: Always
+              value: "http://chrome-node-service:4444"
+          command: ["sleep", "infinity"]

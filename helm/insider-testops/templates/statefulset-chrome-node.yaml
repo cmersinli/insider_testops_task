@@ -2,70 +2,31 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: chrome-node
-  namespace: {{ include "insider-testops.namespace" . }}
-  labels:
-    {{- include "insider-testops.chromeNodeLabels" . | nindent 4 }}
+  namespace: {{ include "namespace" . }}
 spec:
-  serviceName: {{ .Values.chromeNodeService.headlessName | default "chrome-node-headless" }}
-  replicas: {{ .Values.chromeNode.replicaCount }}
-  podManagementPolicy: Parallel
+  serviceName: chrome-node-service
+  replicas: {{ .Values.chromeNode.nodeCount }}
   selector:
     matchLabels:
-      {{- include "insider-testops.chromeNodeSelectorLabels" . | nindent 6 }}
+      app: chrome-node
   template:
     metadata:
       labels:
-        {{- include "insider-testops.chromeNodeSelectorLabels" . | nindent 8 }}
+        app: chrome-node
     spec:
-      serviceAccountName: {{ include "insider-testops.serviceAccountName" . }}
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
-        - name: chrome-node
-          image: {{ include "insider-testops.chromeNodeImage" . }}
-          imagePullPolicy: {{ .Values.chromeNode.image.pullPolicy }}
+        - name: chrome
+          image: {{ .Values.chromeNode.image }}
+          imagePullPolicy: {{ .Values.chromeNode.imagePullPolicy | default "IfNotPresent" }}
           ports:
-            - name: selenium
-              containerPort: {{ .Values.chromeNode.ports.selenium }}
-              protocol: TCP
-          {{- with .Values.chromeNode.env }}
+            - containerPort: 4444
           env:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          resources:
-            {{- toYaml .Values.chromeNode.resources | nindent 12 }}
-          readinessProbe:
-            httpGet:
-              path: /status
-              port: selenium
-            initialDelaySeconds: 10
-            periodSeconds: 5
-            timeoutSeconds: 5
-            failureThreshold: 3
-          livenessProbe:
-            httpGet:
-              path: /status
-              port: selenium
-            initialDelaySeconds: 30
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 3
-          securityContext:
-            runAsUser: 1200
-            runAsGroup: 1201
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
+            - name: SE_NODE_MAX_SESSIONS
+              value: "1"
           volumeMounts:
-            - name: dshm
+            - name: shm
               mountPath: /dev/shm
       volumes:
-        - name: dshm
+        - name: shm
           emptyDir:
             medium: Memory
-            sizeLimit: 2Gi
-      restartPolicy: Always
