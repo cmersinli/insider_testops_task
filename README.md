@@ -185,7 +185,7 @@ python scripts/orchestrator.py --deploy --node-count 3
 python scripts/orchestrator.py --execute-tests
 ```
 
-## Orchestrator Commands
+## Orchestrator ( Python Script ) Commands
 
 The python script handles test orchestration:
 
