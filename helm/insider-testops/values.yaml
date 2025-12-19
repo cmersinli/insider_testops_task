@@ -1,11 +1,11 @@
 namespace: insider-testops
 
 controller:
-  image: 212984411759.dkr.ecr.eu-west-1.amazonaws.com/insider-repo:test-case-controller-1.0.1
+  image: <account-id>.dkr.ecr.eu-west-1.amazonaws.com/insider-repo:test-case-controller-1.0.1
   imagePullPolicy: IfNotPresent
 
 chromeNode:
-  image: 212984411759.dkr.ecr.eu-west-1.amazonaws.com/insider-repo:chrome_node-142.0
+  image: <account-id>.dkr.ecr.eu-west-1.amazonaws.com/insider-repo:chrome_node-142.0
   imagePullPolicy: IfNotPresent
   nodeCount: 1
   maxNodes: 5
